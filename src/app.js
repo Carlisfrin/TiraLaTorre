@@ -30,8 +30,8 @@ var GameLayer = cc.Layer.extend({
 
 
         // Avisadores de colisiones
-        this.space.addCollisionHandler(tipoMuro, tipoBloque,
-                         null, null, this.collisionBloqueConMuro.bind(this), null);
+        this.space.addCollisionHandler(tipoMuro, tipoBloque, null, null, this.collisionBloqueConMuro.bind(this), null);
+        this.space.addCollisionHandler(tipoBloque, tipoBloque, null, null, this.collisionBloqueConBloque.bind(this), null);
 
 
 
@@ -109,57 +109,74 @@ var GameLayer = cc.Layer.extend({
     },procesarMouseDown:function(event) {
         // Ambito procesarMouseDown
         var instancia = event.getCurrentTarget();
+        var canI = true;
 
-        // event.getLocationX() y event.getLocationY()
-        var spriteBloque = new cc.PhysicsSprite("#panda1.png");
+        for(var i = 0; i < instancia.arrayBloques.length; i++) {
+            if (instancia.arrayBloques[i].body.getPos().y > cc.winSize.height*0.8){
+                canI = false;
+            }
+        }
+        if (canI){
 
-        // body - cuerpo
-        var body = new cp.Body(1, cp.momentForBox( 10000, spriteBloque.width, spriteBloque.height )  );
+            // Crea el sprite
+            var spriteBloque = new cc.PhysicsSprite("#panda1.png");
 
-        body.p = cc.p( event.getLocationX()  , event.getLocationY() );
-        spriteBloque.setBody(body);
-        instancia.space.addBody(body);
+            // body - cuerpo
+            var body = new cp.Body(1, cp.momentForBox( 10000, spriteBloque.width, spriteBloque.height )  );
 
-        // Forma
-        var shape = new cp.BoxShape(body, spriteBloque.width, spriteBloque.height);
-        shape.setFriction(1);
+            body.p = cc.p( event.getLocationX()  , event.getLocationY() );
+            spriteBloque.setBody(body);
+            instancia.space.addBody(body);
 
-        instancia.space.addShape(shape);
-        shape.setCollisionType(tipoBloque);
+            // Forma
+            var shape = new cp.BoxShape(body, spriteBloque.width, spriteBloque.height);
+            shape.setFriction(1);
 
-        // Agregar el Sprite fisico
-        instancia.addChild(spriteBloque);
+            instancia.space.addShape(shape);
+            shape.setCollisionType(tipoBloque);
 
-        instancia.arrayBloques.push(spriteBloque);
+            // Agregar el Sprite fisico
+            instancia.addChild(spriteBloque);
+
+            instancia.arrayBloques.push(spriteBloque);
+        }
 
 
      },update:function (dt) {
-        this.space.step(dt);
+         this.space.step(dt);
 
-             for(var i = 0; i < this.formasEliminar.length; i++) {
-                var shape = this.formasEliminar[i];
+         for(var i = 0; i < this.formasEliminar.length; i++) {
+            var shape = this.formasEliminar[i];
 
-                for (var j = 0; j < this.arrayBloques.length; j++) {
-                  if (this.arrayBloques[j].body.shapeList[0] == shape) {
-                          // quita la forma
-                          this.space.removeShape(shape);
-                          // quita el cuerpo *opcional, funciona igual
-                          this.space.removeBody(shape.getBody());
-                          // quita el sprite
-                          this.removeChild(this.arrayBloques[j]);
-                          // Borrar tambien de ArrayBloques
-                          this.arrayBloques.splice(j, 1);
+            for (var j = 0; j < this.arrayBloques.length; j++) {
+              if (this.arrayBloques[j].body.shapeList[0] == shape) {
+                      // quita la forma
+                      this.space.removeShape(shape);
+                      // quita el cuerpo *opcional, funciona igual
+                      this.space.removeBody(shape.getBody());
+                      // quita el sprite
+                      this.removeChild(this.arrayBloques[j]);
+                      // Borrar tambien de ArrayBloques
+                      this.arrayBloques.splice(j, 1);
 
-                  }
-                }
+              }
             }
-             this.formasEliminar = [];
+        }
+        this.formasEliminar = [];
 
-
-     },collisionBloqueConMuro:function (arbiter, space) {
+     },
+     collisionBloqueConMuro:function (arbiter, space) {
            var shapes = arbiter.getShapes();
            // shapes[0] es el muro
            this.formasEliminar.push(shapes[1]);
+     },
+
+     collisionBloqueConBloque:function (arbiter, space) {
+          var shapes = arbiter.getShapes();
+          // Comprobar si hemos acabado el nivel
+          if ((shapes[1].body.getPos().y || shapes[0].body.getPos().y) > cc.winSize.height*0.7){
+                console.log("GANAS!");
+          }
      }
 
 });

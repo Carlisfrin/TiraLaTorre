@@ -10,6 +10,8 @@ var res = {
     fondo_png : "res/fondo.png",
     linea_png : "res/linea.png",
     cocodrilo_1_png : "res/cocodrilo_1.png",
+    koala_1_png : "res/koala_1.png",
+    mono_4_png : "res/mono_4.png",
     animacioncocodrilo_png : "res/animacioncocodrilo.png",
     animacioncocodrilo_plist : "res/animacioncocodrilo.plist",
     animacionpanda_png : "res/animacionpanda.png",

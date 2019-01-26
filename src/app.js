@@ -1,6 +1,13 @@
 var tipoMuro = 2;
 var tipoBloque = 3;
 
+var animales = {
+  PANDA: 1,
+  COCODRILO: 2,
+  TIGRE: 3,
+  KOALA: 4,
+  MONO: 5,
+};
 
 
 var GameLayer = cc.Layer.extend({
@@ -19,6 +26,7 @@ var GameLayer = cc.Layer.extend({
         cc.spriteFrameCache.addSpriteFrames(res.barra_3_plist);
         cc.spriteFrameCache.addSpriteFrames(res.animacioncocodrilo_plist);
         cc.spriteFrameCache.addSpriteFrames(res.animacionpanda_plist);
+        cc.spriteFrameCache.addSpriteFrames(res.animaciontigre_plist);
 
 
         // Inicializar el espacio
@@ -118,11 +126,37 @@ var GameLayer = cc.Layer.extend({
         }
         if (canI){
 
+            var animal = Math.floor((Math.random() * 5) + 1);
+
+            console.log(animal);
+
             // Crea el sprite
-            var spriteBloque = new cc.PhysicsSprite("#panda1.png");
+            switch (animal){
+                case animales.PANDA:
+                    var spriteBloque = new cc.PhysicsSprite("#panda1.png");
+                    var body = new cp.Body(1, cp.momentForBox( 100, spriteBloque.width, spriteBloque.height )  );
+                    break;
+                case animales.COCODRILO:
+                    var spriteBloque = new cc.PhysicsSprite("#cocodrilo1.png");
+                    var body = new cp.Body(1, cp.momentForBox( 800, spriteBloque.width, spriteBloque.height )  );
+                    break;
+                case animales.TIGRE:
+                    var spriteBloque = new cc.PhysicsSprite("#tigre1.png");
+                    var body = new cp.Body(1, cp.momentForBox( 200, spriteBloque.width, spriteBloque.height )  );
+                    break;
+                case animales.KOALA:
+                    var spriteBloque = new cc.PhysicsSprite(res.koala_1_png);
+                    var body = new cp.Body(1, cp.momentForBox( 10, spriteBloque.width, spriteBloque.height )  );
+                    break;
+                case animales.MONO:
+                    var spriteBloque = new cc.PhysicsSprite(res.mono_4_png);
+                    var body = new cp.Body(1, cp.momentForBox( 50, spriteBloque.width, spriteBloque.height )  );
+                    break;
+                default:
+                    break;
+            }
 
             // body - cuerpo
-            var body = new cp.Body(1, cp.momentForBox( 10000, spriteBloque.width, spriteBloque.height )  );
 
             body.p = cc.p( event.getLocationX()  , event.getLocationY() );
             spriteBloque.setBody(body);

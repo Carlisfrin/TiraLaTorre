@@ -81,7 +81,9 @@ var GameLayer = cc.Layer.extend({
         // Panel
         this.panel = cc.LabelTTF.create("", "Arial", 20, cc.TEXT_ALIGNMENT_CENTER, cc.TEXT_ALIGNMENT_CENTER);
         this.panel.setPosition(size.width*0.2,cc.winSize.height/2);
-        this.panel.setString("Apila los animales hasta\nla línea de puntos");
+        this.panel.setString("Apila los animales hasta\nla línea de puntos\n\nCada animal tiene distinto peso:\n"+
+                                "Koala: 10 Kg\nMono: 50 Kg\nPanda: 100 Kg\nTigre: 200 Kg\nCocodrilo: 800 Kg");
+        this.panel.setColor(cc.color.BLUE);
         this.addChild(this.panel);
 
         // Linea de puntos
@@ -100,7 +102,7 @@ var GameLayer = cc.Layer.extend({
         //this.space.addBody(body); NO SE INCLUYEN LOS CUERPOS ESTATICOS
         // Forma
         var shape = new cp.BoxShape(body, this.spriteBarra.width, this.spriteBarra.height);
-        shape.setFriction(1);
+        shape.setFriction(10);
         this.space.addShape(shape); // adStaticShape sí son estaticos
         // Agregar el Sprite fisico
         this.addChild(this.spriteBarra);

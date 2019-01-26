@@ -5,7 +5,6 @@ var tipoBloque = 3;
 
 var GameLayer = cc.Layer.extend({
     space:null,
-    spritePelota: null,
     arrayBloques:[],
     spriteFondo: null,
     spriteBarra: null,
@@ -15,7 +14,6 @@ var GameLayer = cc.Layer.extend({
         var size = cc.winSize;
 
         // ZONA DE CACHE.
-        cc.spriteFrameCache.addSpriteFrames(res.animacion_bola_plist);
         cc.spriteFrameCache.addSpriteFrames(res.barra_3_plist);
         cc.spriteFrameCache.addSpriteFrames(res.animacioncocodrilo_plist);
 
@@ -24,8 +22,8 @@ var GameLayer = cc.Layer.extend({
         this.space = new cp.Space();
         this.space.gravity = cp.v( 0, -350);
 
-        this.depuracion = new cc.PhysicsDebugNode(this.space);
-        this.addChild(this.depuracion, 10);
+        //this.depuracion = new cc.PhysicsDebugNode(this.space);
+        //this.addChild(this.depuracion, 10);
 
 
         // Avisadores de colisiones
@@ -68,29 +66,6 @@ var GameLayer = cc.Layer.extend({
         this.spriteFondo.setPosition(cc.p(size.width/2 , size.height/2));
         this.spriteFondo.setScale( size.width / this.spriteFondo.width );
         this.addChild(this.spriteFondo);
-
-
-        // Pelota - Crear el Sprite Fisico
-        this.spritePelota = new cc.PhysicsSprite("#animacion_bola1.png");
-
-        // body - cuerpo
-        var body = new cp.Body(1, cp.momentForCircle(1, 0, this.spritePelota.width/2, cp.vzero)   );
-        body.p = cc.p( size.width*0.5  , size.height*0.5 );
-        this.spritePelota.setBody(body);
-        this.space.addBody(body);
-
-        // Forma
-        var shape = new cp.CircleShape(body, this.spritePelota.width/2, cp.vzero);
-        this.space.addShape(shape);
-
-        // Agregar el Sprite fisico
-        this.addChild(this.spritePelota);
-
-
-
-
-
-
 
         // Agregar BARRA
         this.spriteBarra = new cc.PhysicsSprite("#barra_3.png");
@@ -152,10 +127,8 @@ var GameLayer = cc.Layer.extend({
         // Ambito procesarMouseDown
         var instancia = event.getCurrentTarget();
 
-        var distanciaX = event.getLocationX() - instancia.spritePelota.body.p.x;
-        var distanciaY = event.getLocationY() - instancia.spritePelota.body.p.y;
+        // event.getLocationX() y event.getLocationY()
 
-        instancia.spritePelota.body.applyImpulse( cp.v(distanciaX*1.5 ,distanciaY*1.5 ), cp.v(0,0) );
 
      },update:function (dt) {
         this.space.step(dt);

@@ -7,7 +7,9 @@ var GameLayer = cc.Layer.extend({
     space:null,
     arrayBloques:[],
     spriteFondo: null,
+    spriteLinea: null,
     spriteBarra: null,
+    panel:null,
     formasEliminar: [],
     ctor:function () {
         this._super();
@@ -16,6 +18,7 @@ var GameLayer = cc.Layer.extend({
         // ZONA DE CACHE.
         cc.spriteFrameCache.addSpriteFrames(res.barra_3_plist);
         cc.spriteFrameCache.addSpriteFrames(res.animacioncocodrilo_plist);
+        cc.spriteFrameCache.addSpriteFrames(res.animacionpanda_plist);
 
 
         // Inicializar el espacio
@@ -67,52 +70,32 @@ var GameLayer = cc.Layer.extend({
         this.spriteFondo.setScale( size.width / this.spriteFondo.width );
         this.addChild(this.spriteFondo);
 
+        // Panel
+        this.panel = cc.LabelTTF.create("", "Arial", 20, cc.TEXT_ALIGNMENT_CENTER, cc.TEXT_ALIGNMENT_CENTER);
+        this.panel.setPosition(size.width*0.2,cc.winSize.height/2);
+        this.panel.setString("Apila los animales hasta\nla línea de puntos");
+        this.addChild(this.panel);
+
+        // Linea de puntos
+        this.spriteLinea = cc.Sprite.create(res.linea_png);
+        this.spriteLinea.setPosition(cc.p(size.width*0.7 , size.height*0.7));
+        this.spriteLinea.setScaleX( 1/10 );
+        this.spriteLinea.setScaleY( 1/50 );
+        this.addChild(this.spriteLinea);
+
         // Agregar BARRA
         this.spriteBarra = new cc.PhysicsSprite("#barra_3.png");
-
         // body - cuerpo ES ESTATICO
         var body = new cp.StaticBody();
-
-        body.p = cc.p( size.width*0.7  , size.height*0.4 );
+        body.p = cc.p( size.width*0.7  , size.height*0.3 );
         this.spriteBarra.setBody(body);
         //this.space.addBody(body); NO SE INCLUYEN LOS CUERPOS ESTATICOS
-
         // Forma
         var shape = new cp.BoxShape(body, this.spriteBarra.width, this.spriteBarra.height);
         shape.setFriction(1);
         this.space.addShape(shape); // adStaticShape sí son estaticos
-
         // Agregar el Sprite fisico
         this.addChild(this.spriteBarra);
-
-
-
-        // AGREGAR COCODRILO
-        for ( i=0; i < 4; i++){
-            var spriteBloque = new cc.PhysicsSprite("#cocodrilo1.png");
-
-            // body - cuerpo
-            var body = new cp.Body(1, cp.momentForBox( 1, spriteBloque.width, spriteBloque.height )  );
-
-            body.p = cc.p( size.width*0.7  , size.height*0.4 + this.spriteBarra.height/2 + spriteBloque.height/2 + spriteBloque.height*i );
-            spriteBloque.setBody(body);
-            this.space.addBody(body);
-
-            // Forma
-            var shape = new cp.BoxShape(body, spriteBloque.width, spriteBloque.height);
-            shape.setFriction(1);
-
-            this.space.addShape(shape);
-            shape.setCollisionType(tipoBloque);
-
-            // Agregar el Sprite fisico
-            this.addChild(spriteBloque);
-
-            this.arrayBloques.push(spriteBloque);
-        }
-
-
-
 
         // Evento MOUSE
         cc.eventManager.addListener({
@@ -128,6 +111,26 @@ var GameLayer = cc.Layer.extend({
         var instancia = event.getCurrentTarget();
 
         // event.getLocationX() y event.getLocationY()
+        var spriteBloque = new cc.PhysicsSprite("#panda1.png");
+
+        // body - cuerpo
+        var body = new cp.Body(1, cp.momentForBox( 10000, spriteBloque.width, spriteBloque.height )  );
+
+        body.p = cc.p( event.getLocationX()  , event.getLocationY() );
+        spriteBloque.setBody(body);
+        instancia.space.addBody(body);
+
+        // Forma
+        var shape = new cp.BoxShape(body, spriteBloque.width, spriteBloque.height);
+        shape.setFriction(1);
+
+        instancia.space.addShape(shape);
+        shape.setCollisionType(tipoBloque);
+
+        // Agregar el Sprite fisico
+        instancia.addChild(spriteBloque);
+
+        instancia.arrayBloques.push(spriteBloque);
 
 
      },update:function (dt) {

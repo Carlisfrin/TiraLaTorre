@@ -8,6 +8,7 @@ var res = {
     barra_3_png : "res/barra_3.png",
     barra_3_plist : "res/barra_3.plist",
     fondo_png : "res/fondo.png",
+    linea_png : "res/linea.png",
     cocodrilo_1_png : "res/cocodrilo_1.png",
     animacioncocodrilo_png : "res/animacioncocodrilo.png",
     animacioncocodrilo_plist : "res/animacioncocodrilo.plist",

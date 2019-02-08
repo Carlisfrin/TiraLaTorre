@@ -260,7 +260,7 @@ var GameScene = cc.Scene.extend({
     onEnter:function () {
         this._super();
         cc.director.resume();
-        //cc.audioEngine.playMusic(res.sonidobucle_wav, true);
+        cc.audioEngine.playMusic(res.sonidobucle_wav, true);
         var layer = new GameLayer();
         this.addChild(layer);
     }

@@ -1,6 +1,13 @@
 var tipoMuro = 2;
 var tipoBloque = 3;
 
+var difficulty_level = {
+  EASY: 1,
+  MEDIUM: 2,
+  HARD: 3,
+};
+difficulty = difficulty_level.EASY;
+
 var animales = {
   PANDA: 1,
   COCODRILO: 2,
@@ -18,6 +25,9 @@ var GameLayer = cc.Layer.extend({
     spriteBarra: null,
     panel:null,
     formasEliminar: [],
+    alturaLinea: null,
+    alturaBarra: null,
+    mensaje: null,
     ctor:function () {
         this._super();
         var size = cc.winSize;
@@ -28,21 +38,13 @@ var GameLayer = cc.Layer.extend({
         cc.spriteFrameCache.addSpriteFrames(res.animacionpanda_plist);
         cc.spriteFrameCache.addSpriteFrames(res.animaciontigre_plist);
 
-
         // Inicializar el espacio
         this.space = new cp.Space();
         this.space.gravity = cp.v( 0, -350);
 
-        //this.depuracion = new cc.PhysicsDebugNode(this.space);
-        //this.addChild(this.depuracion, 10);
-
-
         // Avisadores de colisiones
         this.space.addCollisionHandler(tipoMuro, tipoBloque, null, null, this.collisionBloqueConMuro.bind(this), null);
         this.space.addCollisionHandler(tipoBloque, tipoBloque, null, null, this.collisionBloqueConBloque.bind(this), null);
-
-
-
 
         // Muros
         var muroIzquierda = new cp.SegmentShape(this.space.staticBody,
@@ -50,19 +52,16 @@ var GameLayer = cc.Layer.extend({
             cp.v(0, size.height),// Punto final
             10);// Ancho del muro
         this.space.addStaticShape(muroIzquierda);
-
         var muroArriba = new cp.SegmentShape(this.space.staticBody,
             cp.v(0, size.height),// Punto de Inicio
             cp.v(size.width, size.height),// Punto final
             10);// Ancho del muro
         this.space.addStaticShape(muroArriba);
-
         var muroDerecha = new cp.SegmentShape(this.space.staticBody,
             cp.v(size.width, 0),// Punto de Inicio
             cp.v(size.width, size.height),// Punto final
             10);// Ancho del muro
         this.space.addStaticShape(muroDerecha);
-
         var muroAbajo = new cp.SegmentShape(this.space.staticBody,
             cp.v(0, 0),// Punto de Inicio
             cp.v(size.width, 0),// Punto final
@@ -71,24 +70,44 @@ var GameLayer = cc.Layer.extend({
         muroAbajo.setCollisionType(tipoMuro);
         this.space.addStaticShape(muroAbajo);
 
-
         // Fondo
         this.spriteFondo = cc.Sprite.create(res.fondo_png);
         this.spriteFondo.setPosition(cc.p(size.width/2 , size.height/2));
         this.spriteFondo.setScale( size.width / this.spriteFondo.width );
         this.addChild(this.spriteFondo);
 
+        // Niveles de difficultad
+        switch (difficulty) {
+            case difficulty_level.EASY:
+                this.alturaLinea = size.height*0.6;
+                this.alturaBarra = size.height*0.4;
+                this.mensaje = "FÁCIL";
+                break;
+            case difficulty_level.MEDIUM:
+                this.alturaLinea = size.height*0.7;
+                this.alturaBarra = size.height*0.3;
+                this.mensaje = "MEDIO";
+                break;
+            case difficulty_level.HARD:
+                this.alturaLinea = size.height*0.8;
+                this.alturaBarra = size.height*0.2;
+                this.mensaje = "DIFÍCIL";
+                break;
+            default:
+                break;
+        }
+
         // Panel
         this.panel = cc.LabelTTF.create("", "Arial", 20, cc.TEXT_ALIGNMENT_CENTER, cc.TEXT_ALIGNMENT_CENTER);
         this.panel.setPosition(size.width*0.2,cc.winSize.height/2);
-        this.panel.setString("Apila los animales hasta\nla línea de puntos\n\nCada animal tiene distinto peso:\n"+
+        this.panel.setString(this.mensaje + "\nApila los animales hasta\nla línea de puntos\n\nCada animal tiene distinto peso:\n"+
                                 "Koala: 10 Kg\nMono: 50 Kg\nPanda: 100 Kg\nTigre: 200 Kg\nCocodrilo: 800 Kg");
         this.panel.setColor(cc.color.BLUE);
         this.addChild(this.panel);
 
         // Linea de puntos
         this.spriteLinea = cc.Sprite.create(res.linea_png);
-        this.spriteLinea.setPosition(cc.p(size.width*0.7 , size.height*0.7));
+        this.spriteLinea.setPosition(cc.p(size.width*0.7 , this.alturaLinea));
         this.spriteLinea.setScaleX( 1/10 );
         this.spriteLinea.setScaleY( 1/50 );
         this.addChild(this.spriteLinea);
@@ -97,9 +116,8 @@ var GameLayer = cc.Layer.extend({
         this.spriteBarra = new cc.PhysicsSprite("#barra_3.png");
         // body - cuerpo ES ESTATICO
         var body = new cp.StaticBody();
-        body.p = cc.p( size.width*0.7  , size.height*0.3 );
+        body.p = cc.p( size.width*0.7  , this.alturaBarra );
         this.spriteBarra.setBody(body);
-        //this.space.addBody(body); NO SE INCLUYEN LOS CUERPOS ESTATICOS
         // Forma
         var shape = new cp.BoxShape(body, this.spriteBarra.width, this.spriteBarra.height);
         shape.setFriction(10);
@@ -120,6 +138,7 @@ var GameLayer = cc.Layer.extend({
         // Ambito procesarMouseDown
         var instancia = event.getCurrentTarget();
         var canI = true;
+        console.log(instancia.arrayBloques.length);
 
         for(var i = 0; i < instancia.arrayBloques.length; i++) {
             if (instancia.arrayBloques[i].body.getPos().y > cc.winSize.height*0.8){
@@ -127,10 +146,8 @@ var GameLayer = cc.Layer.extend({
             }
         }
         if (canI){
-
+            // Animal aleatorio
             var animal = Math.floor((Math.random() * 5) + 1);
-
-            console.log(animal);
 
             // Crea el sprite
             switch (animal){
@@ -159,7 +176,6 @@ var GameLayer = cc.Layer.extend({
             }
 
             // body - cuerpo
-
             body.p = cc.p( event.getLocationX()  , event.getLocationY() );
             spriteBloque.setBody(body);
             instancia.space.addBody(body);
@@ -167,54 +183,39 @@ var GameLayer = cc.Layer.extend({
             // Forma
             var shape = new cp.BoxShape(body, spriteBloque.width, spriteBloque.height);
             shape.setFriction(1);
-
             instancia.space.addShape(shape);
             shape.setCollisionType(tipoBloque);
 
             // Agregar el Sprite fisico
             instancia.addChild(spriteBloque);
-
             instancia.arrayBloques.push(spriteBloque);
         }
 
+    },vaciarArray:function () {
+        while (this.arrayBloques.length > 0) {
+              this.arrayBloques.pop();
+        }
 
-     },update:function (dt) {
-         this.space.step(dt);
+    },update:function (dt) {
+        this.space.step(dt);
 
-         for(var i = 0; i < this.formasEliminar.length; i++) {
-            var shape = this.formasEliminar[i];
+    },collisionBloqueConMuro:function (arbiter, space) {
+        this.vaciarArray();
+        cc.director.runScene(new GameScene());
 
-            for (var j = 0; j < this.arrayBloques.length; j++) {
-              if (this.arrayBloques[j].body.shapeList[0] == shape) {
-                      // quita la forma
-                      this.space.removeShape(shape);
-                      // quita el cuerpo *opcional, funciona igual
-                      this.space.removeBody(shape.getBody());
-                      // quita el sprite
-                      this.removeChild(this.arrayBloques[j]);
-                      // Borrar tambien de ArrayBloques
-                      this.arrayBloques.splice(j, 1);
-
-              }
+    },collisionBloqueConBloque:function (arbiter, space) {
+        var shapes = arbiter.getShapes();
+        // Comprobar si hemos acabado el nivel
+        if ((shapes[1].body.getPos().y || shapes[0].body.getPos().y) > this.alturaLinea){
+            if (difficulty != difficulty_level.HARD) {
+                difficulty = difficulty + 1;
+                this.vaciarArray();
+                cc.director.runScene(new GameScene());
+            } else {
+                this.panel.setString("¡HAS GANADO!");
             }
         }
-        this.formasEliminar = [];
-
-     },
-     collisionBloqueConMuro:function (arbiter, space) {
-           var shapes = arbiter.getShapes();
-           // shapes[0] es el muro
-           this.formasEliminar.push(shapes[1]);
-     },
-
-     collisionBloqueConBloque:function (arbiter, space) {
-          var shapes = arbiter.getShapes();
-          // Comprobar si hemos acabado el nivel
-          if ((shapes[1].body.getPos().y || shapes[0].body.getPos().y) > cc.winSize.height*0.7){
-                console.log("GANAS!");
-          }
-     }
-
+    }
 });
 
 var GameScene = cc.Scene.extend({

@@ -16,18 +16,18 @@ var animales = {
   MONO: 5,
 };
 
-
 var GameLayer = cc.Layer.extend({
     space:null,
     arrayBloques:[],
     spriteFondo: null,
     spriteLinea: null,
     spriteBarra: null,
+    spriteSiguiente: null,
     panel:null,
-    formasEliminar: [],
     alturaLinea: null,
     alturaBarra: null,
     mensaje: null,
+    animalSiguiente: null,
     ctor:function () {
         this._super();
         var size = cc.winSize;
@@ -101,7 +101,8 @@ var GameLayer = cc.Layer.extend({
         this.panel = cc.LabelTTF.create("", "Arial", 20, cc.TEXT_ALIGNMENT_CENTER, cc.TEXT_ALIGNMENT_CENTER);
         this.panel.setPosition(size.width*0.2,cc.winSize.height/2);
         this.panel.setString(this.mensaje + "\nApila los animales hasta\nla línea de puntos\n\nCada animal tiene distinto peso:\n"+
-                                "Koala: 10 Kg\nMono: 50 Kg\nPanda: 100 Kg\nTigre: 200 Kg\nCocodrilo: 800 Kg");
+                                "Koala: 10 Kg\nMono: 50 Kg\nPanda: 100 Kg\nTigre: 200 Kg\nCocodrilo: 800 Kg\n\n"+
+                                "Siguiente animal:");
         this.panel.setColor(cc.color.BLUE);
         this.addChild(this.panel);
 
@@ -131,26 +132,25 @@ var GameLayer = cc.Layer.extend({
             onMouseDown: this.procesarMouseDown
         }, this);
 
+        this.nuevoAnimal();
+
         this.scheduleUpdate();
         return true;
 
     },procesarMouseDown:function(event) {
-        // Ambito procesarMouseDown
-        var instancia = event.getCurrentTarget();
-        var canI = true;
-        console.log(instancia.arrayBloques.length);
 
+        var instancia = event.getCurrentTarget();
+
+        // Comprueba si el bloque se puede crear
+        var canI = true;
         for(var i = 0; i < instancia.arrayBloques.length; i++) {
-            if (instancia.arrayBloques[i].body.getPos().y > cc.winSize.height*0.8){
+            if (instancia.arrayBloques[i].body.getPos().y > instancia.alturaLinea){
                 canI = false;
             }
         }
         if (canI){
-            // Animal aleatorio
-            var animal = Math.floor((Math.random() * 5) + 1);
-
             // Crea el sprite
-            switch (animal){
+            switch (instancia.animalSiguiente){
                 case animales.PANDA:
                     var spriteBloque = new cc.PhysicsSprite("#panda1.png");
                     var body = new cp.Body(1, cp.momentForBox( 100, spriteBloque.width, spriteBloque.height )  );
@@ -189,6 +189,10 @@ var GameLayer = cc.Layer.extend({
             // Agregar el Sprite fisico
             instancia.addChild(spriteBloque);
             instancia.arrayBloques.push(spriteBloque);
+
+            // Siguiente animal aleatorio
+            instancia.nuevoAnimal();
+
         }
 
     },vaciarArray:function () {
@@ -196,16 +200,50 @@ var GameLayer = cc.Layer.extend({
               this.arrayBloques.pop();
         }
 
+    },nuevoAnimal:function () {
+        // Gestiona el sprite del siguiente animal
+        if (this.spriteSiguiente) {
+            // Si hay un animal previo, elimina su sprite
+            this.removeChild(this.spriteSiguiente);
+        }
+        // Genera aleatoriamente un animal
+        this.animalSiguiente = Math.floor((Math.random() * 5) + 1);
+
+        // Elige la imagen adecuada al animal
+        switch (this.animalSiguiente){
+            case animales.PANDA:
+                this.spriteSiguiente = cc.Sprite.create("#panda1.png");
+                break;
+            case animales.COCODRILO:
+                this.spriteSiguiente = cc.Sprite.create("#cocodrilo1.png");
+                break;
+            case animales.TIGRE:
+                this.spriteSiguiente = cc.Sprite.create("#tigre1.png");
+                break;
+            case animales.KOALA:
+                this.spriteSiguiente = cc.Sprite.create(res.koala_1_png);
+                break;
+            case animales.MONO:
+                this.spriteSiguiente = cc.Sprite.create(res.mono_4_png);
+                break;
+            default:
+                break;
+        }
+        // Agrega el sprite
+        this.spriteSiguiente.setPosition(cc.winSize.width*0.2,cc.winSize.height/9);
+        this.addChild( this.spriteSiguiente );
+
     },update:function (dt) {
         this.space.step(dt);
 
     },collisionBloqueConMuro:function (arbiter, space) {
+        // Vacía el array de bloques y reinicia el nivel
         this.vaciarArray();
         cc.director.runScene(new GameScene());
 
     },collisionBloqueConBloque:function (arbiter, space) {
         var shapes = arbiter.getShapes();
-        // Comprobar si hemos acabado el nivel
+        // Comprobar si hemos superado la linea de puntos
         if ((shapes[1].body.getPos().y || shapes[0].body.getPos().y) > this.alturaLinea){
             if (difficulty != difficulty_level.HARD) {
                 difficulty = difficulty + 1;
